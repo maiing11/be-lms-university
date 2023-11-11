@@ -16,7 +16,7 @@ func main() {
 	r.GET("/ping", handler.PingHandler)
 
 	// intercept satu route
-	r.GET("/ping", middleware.SimpleMiddleware(), handler.PingHandler)
+	// r.GET("/ping", middleware.SimpleMiddleware(), handler.PingHandler)
 
 	r.POST("/users", handler.CreateUCHandler)
 	r.POST("/users/register", handler.CreateUCWithPhotoHandler)
