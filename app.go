@@ -10,16 +10,22 @@ func main() {
 	r := gin.Default()
 
 	//	intercept semuanya / routernya
-	r.Use(middleware.SimpleMiddleware())
+	// r.Use(middleware.SimpleMiddleware())
+
+	v1 := r.Group("/api/v1")
+
+	userGroup := v1.Group("/users")
+
+	userGroup.Use(middleware.SimpleMiddleware())
 
 	// test ping
-	r.GET("/ping", handler.PingHandler)
+	v1.GET("/ping", handler.PingHandler)
 
 	// intercept satu route
-	r.GET("/ping", middleware.SimpleMiddleware(), handler.PingHandler)
+	// r.GET("/ping", middleware.SimpleMiddleware(), handler.PingHandler)
 
-	r.POST("/users", handler.CreateUCHandler)
-	r.POST("/users/register", handler.CreateUCWithPhotoHandler)
+	userGroup.POST("/", handler.CreateUCHandler)
+	userGroup.POST("/register", handler.CreateUCWithPhotoHandler)
 
 	r.Run(":8080")
 }
