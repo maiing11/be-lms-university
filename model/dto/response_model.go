@@ -1,4 +1,4 @@
-package model
+package dto
 
 import (
 	"net/http"
@@ -21,10 +21,10 @@ type MultipleResponse struct {
 	Data   []interface{} `json:"data"`
 }
 
-func SendSingleResponse(ctx *gin.Context, description string, data interface{}) {
+func SendSingleResponse(ctx *gin.Context, code int, description string, data interface{}) {
 	ctx.JSON(http.StatusCreated, SingleResponse{
 		Status: Status{
-			Code:        http.StatusCreated,
+			Code:        code,
 			Description: description,
 		},
 		Data: data,
