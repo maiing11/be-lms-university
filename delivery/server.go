@@ -1,26 +1,26 @@
 package delivery
 
 import (
-	"database/sql"
 	"fmt"
+	"log"
 
+	"enigmacamp.com/be-lms-university/config"
 	"enigmacamp.com/be-lms-university/delivery/controller"
-	"enigmacamp.com/be-lms-university/repository"
-	"enigmacamp.com/be-lms-university/usecase"
+	"enigmacamp.com/be-lms-university/manager"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
 type Server struct {
-	uc     usecase.EnrollmentUseCase
-	engine *gin.Engine
-	host   string
+	ucManager manager.UseCaseManager
+	engine    *gin.Engine
+	host      string
 }
 
 func (s *Server) setupController() {
 	rg := s.engine.Group("/api/v1")
 	// semua controller didaftarkan disini
-	controller.NewEnrollmentController(s.uc, rg).Route()
+	controller.NewEnrollmentController(s.ucManager.EnrollmentUseCase(), rg).Route()
 }
 
 func (s *Server) Run() {
@@ -31,35 +31,20 @@ func (s *Server) Run() {
 }
 
 func NewServer() *Server {
-	host := "localhost"
-	port := "5432"
-	user := "postgres"
-	password := "postgres"
-	dbName := "lms_university"
-	driver := "postgres"
-
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
-
-	db, err := sql.Open(driver, dsn)
+	// Infra Manager
+	cfg, err := config.NewConfig()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
-	// enrollment
-	enrollRepo := repository.NewEnrollmentRepository(db)
-	userRepo := repository.NewUserRepository(db)
-	courseRepo := repository.NewCourseRepository(db)
-	userUC := usecase.NewUserUseCase(userRepo)
-	courseUC := usecase.NewCourseUseCase(courseRepo)
-	enrollmentUC := usecase.NewEnrollmentUseCase(enrollRepo, userUC, courseUC)
-
+	infraManager, _ := manager.NewInfraManager(cfg)
+	repoManager := manager.NewRepoManager(infraManager)
+	useCaseManager := manager.NewUseCaseManager(repoManager)
 	engine := gin.Default()
-	// ini kalo misalkan portnya mau diubah
-	apiHost := fmt.Sprintf(":%s", "8080")
+	host := fmt.Sprintf(":%s", cfg.ApiPort)
 
 	return &Server{
-		uc:     enrollmentUC,
-		engine: engine,
-		host:   apiHost,
+		ucManager: useCaseManager,
+		engine:    engine,
+		host:      host,
 	}
 }
